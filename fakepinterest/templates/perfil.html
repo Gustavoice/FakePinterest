@@ -1,0 +1,282 @@
+
+{% extends "homepage.html" %}
+
+{% block titulo %}
+Perfil - {{ usuario.username }}
+{% endblock %}
+
+{% block body %}
+
+{% include "navbar.html" %}
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        background-color: #f5f5f5;
+        margin: 0;
+        font-family: Arial, sans-serif;
+    }
+
+    .perfil-container {
+        max-width: 1400px;
+        margin: auto;
+        padding: 35px;
+    }
+
+    /* Cabeçalho do perfil */
+    .perfil-header {
+        text-align: center;
+        margin-bottom: 35px;
+        background-color: white;
+        padding: 35px 20px;
+        border-radius: 20px;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .perfil-header h1 {
+        color: #333;
+        font-size: 28px;
+        margin-bottom: 10px;
+    }
+
+    .perfil-header p {
+        color: #777;
+        font-size: 15px;
+    }
+
+    /* Área de upload */
+    .upload-container {
+        background-color: white;
+        padding: 25px;
+        border-radius: 18px;
+        margin-bottom: 35px;
+        text-align: center;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .upload-container h2 {
+        color: #333;
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+
+    .upload-container form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .upload-container input[type="file"] {
+        max-width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        background-color: #fafafa;
+    }
+
+    .upload-container input[type="submit"] {
+        background-color: #e60023;
+        color: white;
+        border: none;
+        padding: 13px 30px;
+        border-radius: 25px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .upload-container input[type="submit"]:hover {
+        background-color: #bd001c;
+    }
+
+    /* Título da galeria */
+    .galeria-titulo {
+        font-size: 24px;
+        color: #333;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    /* Galeria de fotos */
+    .perfil-galeria {
+        columns: 5 220px;
+        column-gap: 18px;
+    }
+
+    .foto-card {
+        display: inline-block;
+        width: 100%;
+        margin-bottom: 18px;
+        break-inside: avoid;
+        border-radius: 18px;
+        overflow: hidden;
+        background-color: white;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .foto-card img {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 18px;
+    }
+
+    .foto-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Formulário de exclusão */
+    .foto-card form {
+        padding: 0 10px 10px;
+    }
+
+    .botao-apagar {
+        width: 100%;
+        padding: 12px;
+        margin-top: 8px;
+        background-color: #e60023;
+        color: white;
+        border: none;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .botao-apagar:hover {
+        background-color: #bd001c;
+    }
+
+    /* Quando não houver fotos */
+    .sem-fotos {
+        text-align: center;
+        color: #777;
+        font-size: 16px;
+        background-color: white;
+        padding: 35px;
+        border-radius: 18px;
+    }
+
+    /* Responsividade */
+    @media (max-width: 768px) {
+        .perfil-container {
+            padding: 20px 15px;
+        }
+
+        .perfil-galeria {
+            columns: 3 150px;
+            column-gap: 12px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .perfil-galeria {
+            columns: 2 130px;
+            column-gap: 10px;
+        }
+
+        .perfil-header h1 {
+            font-size: 23px;
+        }
+
+        .perfil-container {
+            padding: 15px 10px;
+        }
+    }
+</style>
+
+<div class="perfil-container">
+
+    <!-- Cabeçalho do perfil -->
+    <div class="perfil-header">
+
+        <h1>Perfil de {{ usuario.username }}</h1>
+
+        <p>Bem-vindo(a) ao seu espaço de inspirações!</p>
+
+    </div>
+
+    <!-- Formulário para publicar fotos -->
+    {% if form %}
+
+    <div class="upload-container">
+
+        <h2>Compartilhe uma nova inspiração!</h2>
+
+        <form method="POST" enctype="multipart/form-data">
+
+            {{ form.csrf_token }}
+
+            {{ form.foto() }}
+
+            {{ form.botao_confirmacao() }}
+
+        </form>
+
+    </div>
+
+    {% endif %}
+
+    <!-- Galeria de publicações -->
+    <h2 class="galeria-titulo">Minhas publicações</h2>
+
+    {% if usuario.fotos %}
+
+        <div class="perfil-galeria">
+
+            {% for foto in usuario.fotos %}
+
+                <div class="foto-card">
+
+                    <img
+                        src="{{ url_for('static', filename='fotos_posts/{}'.format(foto.imagem)) }}"
+                        alt="Publicação de {{ usuario.username }}">
+
+                    <!-- Botão de apagar -->
+                    {% if form %}
+
+                        <form
+                            method="POST"
+                            action="{{ url_for('apagar_foto', id_foto=foto.id) }}"
+                            onsubmit="return confirm('Tem certeza que deseja apagar esta publicação?')">
+
+                            {{ form.csrf_token }}
+
+                            <button type="submit" class="botao-apagar">
+                                Apagar publicação
+                            </button>
+
+                        </form>
+
+                    {% endif %}
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <!-- Mensagem quando não existem publicações -->
+        <div class="sem-fotos">
+
+            <p>Você ainda não publicou nenhuma foto.</p>
+
+            {% if form %}
+                <p>Que tal compartilhar sua primeira inspiração?</p>
+            {% endif %}
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
